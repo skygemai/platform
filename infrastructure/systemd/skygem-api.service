@@ -1,0 +1,24 @@
+[Unit]
+Description=SkyGem Platform API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/opt/skygem/platform/apps/api
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/skygem/skygem-api.env
+# If Node was installed with nvm, replace /usr/bin/node with the full path
+# reported by: command -v node
+ExecStart=/usr/local/bin/node /opt/skygem/platform/apps/api/dist/src/server.js
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

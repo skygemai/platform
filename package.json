@@ -1,0 +1,19 @@
+{
+  "name": "skygem-platform",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @skygem/shared && npm run build -w @skygem/api && npm run build -w @skygem/portal",
+    "typecheck": "npm run build -w @skygem/shared && npm run typecheck -w @skygem/api && npm run typecheck -w @skygem/portal",
+    "test": "npm run build && npm run test -w @skygem/api",
+    "dev:api": "npm run build -w @skygem/shared && npm run dev -w @skygem/api",
+    "dev:portal": "npm run build -w @skygem/shared && npm run dev -w @skygem/portal"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
