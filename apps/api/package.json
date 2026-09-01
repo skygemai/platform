@@ -6,9 +6,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file=.env src/server.ts",
     "start": "node dist/server.js",
-    "test": "node --test dist/tests/*.test.js"
+    "test": "node --test dist/tests/*.test.js",
+    "test:retell": "tsx --env-file=.env src/scripts/test-retell.ts"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.850.0",
@@ -19,6 +20,7 @@
     "express-rate-limit": "^8.0.0",
     "helmet": "^8.1.0",
     "pg": "^8.16.0",
+    "retell-sdk": "^5.64.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {

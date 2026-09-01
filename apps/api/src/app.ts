@@ -25,6 +25,7 @@ import { MessagingController } from "./modules/messaging/messaging.controller.js
 import { MessagingRepository } from "./modules/messaging/messaging.repository.js";
 import { createMessagingRouter } from "./modules/messaging/messaging.routes.js";
 import { MessagingService } from "./modules/messaging/messaging.service.js";
+import retellCallsRouter from "./routes/retell-calls.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -90,6 +91,9 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
     createAgentAuthenticator(pool),
     createAgentActionsRouter(agentActionsController)
   );
+
+  // Retell test route
+  app.use("/api/retell/calls", retellCallsRouter);
 
   app.use((_request, response) => {
     response.status(404).json({ error: "Route not found" });

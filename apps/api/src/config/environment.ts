@@ -12,7 +12,8 @@ const environmentSchema = z.object({
   SMS_PROVIDER: z.enum(["console"]).default("console"),
   SMS_FROM_NUMBER: z.string().optional(),
   RETELL_API_KEY_SECRET_ID: z.string().optional(),
-  RETELL_WEBHOOK_SECRET: z.string().optional()
+  RETELL_WEBHOOK_SECRET: z.string().optional(),
+  RETELL_API_KEY: z.string().min(1)
 });
 
 export type Environment = z.infer<typeof environmentSchema>;

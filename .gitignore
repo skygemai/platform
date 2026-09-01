@@ -1,9 +1,37 @@
-node_modules/
-dist/
+# Environment variables and credentials
 .env
 .env.*
 !.env.example
+!.env.*.example
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.tfvars
+*.tfstate
+*.tfstate.*
+credentials*.json
+service-account*.json
+secrets*.json
+
+# Local databases and customer data
+*.db
+*.sqlite
+*.sqlite3
+recordings/
+exports/
+uploads/
+
+# Dependencies and generated files
+node_modules/
+dist/
+build/
 coverage/
 *.log
 *.tsbuildinfo
+
+# macOS and editors
 .DS_Store
+.idea/
+.vscode/
