@@ -16,6 +16,8 @@
 -- ============================================================
 
 
+SET SCHEMA 'shared';
+
 -- ============================================================
 -- EXTENSIONS
 -- ============================================================
@@ -32,7 +34,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- authentication provider and should NOT be stored here.
 -- ============================================================
 
-CREATE TABLE public.users (
+CREATE TABLE users (
     id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
     email               text NOT NULL,
@@ -41,11 +43,11 @@ CREATE TABLE public.users (
     is_active           boolean NOT NULL DEFAULT true,
 
     created_at          timestamptz NOT NULL DEFAULT now(),
-    updated_at          timestamptz NOT NULL DEFAULT now(),
-
-    CONSTRAINT users_email_unique
-        UNIQUE (lower(email))
+    updated_at          timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE UNIQUE INDEX users_email_unique
+    ON users (lower(email));
 
 
 -- ============================================================
@@ -58,7 +60,7 @@ CREATE TABLE public.users (
 -- example would be a acme_health for tenant Acme Health
 -- ============================================================
 
-CREATE TABLE public.tenants (
+CREATE TABLE tenants (
     id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
     name                text NOT NULL,
@@ -85,7 +87,7 @@ CREATE TABLE public.tenants (
 -- The role applies ONLY within the associated tenant.
 -- ============================================================
 
-CREATE TABLE public.memberships (
+CREATE TABLE memberships (
     id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
     user_id             uuid NOT NULL,
@@ -100,12 +102,12 @@ CREATE TABLE public.memberships (
 
     CONSTRAINT memberships_user_fk
         FOREIGN KEY (user_id)
-        REFERENCES public.users(id)
+        REFERENCES users(id)
         ON DELETE CASCADE,
 
     CONSTRAINT memberships_tenant_fk
         FOREIGN KEY (tenant_id)
-        REFERENCES public.tenants(id)
+        REFERENCES tenants(id)
         ON DELETE CASCADE,
 
     CONSTRAINT memberships_user_tenant_unique
@@ -145,7 +147,7 @@ CREATE TABLE public.memberships (
 --   Do not store database credentials or connection strings here.
 -- ============================================================
 
-CREATE TABLE public.tenant_storage (
+CREATE TABLE tenant_storage (
     tenant_id           uuid PRIMARY KEY,
 
     storage_type        text NOT NULL DEFAULT 'shared',
@@ -158,7 +160,7 @@ CREATE TABLE public.tenant_storage (
 
     CONSTRAINT tenant_storage_tenant_fk
         FOREIGN KEY (tenant_id)
-        REFERENCES public.tenants(id)
+        REFERENCES tenants(id)
         ON DELETE CASCADE,
 
     CONSTRAINT tenant_storage_type_check
@@ -207,7 +209,7 @@ CREATE TABLE public.tenant_storage (
 -- Store a reference to your secrets manager instead.
 -- ============================================================
 
-CREATE TABLE public.retell_connections (
+CREATE TABLE retell_connections (
     id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
     tenant_id               uuid NOT NULL,
@@ -224,7 +226,7 @@ CREATE TABLE public.retell_connections (
 
     CONSTRAINT retell_connections_tenant_fk
         FOREIGN KEY (tenant_id)
-        REFERENCES public.tenants(id)
+        REFERENCES tenants(id)
         ON DELETE CASCADE,
 
     CONSTRAINT retell_connections_tenant_name_unique
@@ -233,7 +235,7 @@ CREATE TABLE public.retell_connections (
 
 
 CREATE INDEX retell_connections_tenant_id_idx
-    ON public.retell_connections(tenant_id);
+    ON retell_connections(tenant_id);
 
 
 -- ============================================================
@@ -246,7 +248,7 @@ CREATE INDEX retell_connections_tenant_id_idx
 -- needed to identify the tenant when processing Retell events.
 -- ============================================================
 
-CREATE TABLE public.agents (
+CREATE TABLE agents (
     id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
     tenant_id               uuid NOT NULL,
@@ -264,12 +266,12 @@ CREATE TABLE public.agents (
 
     CONSTRAINT agents_tenant_fk
         FOREIGN KEY (tenant_id)
-        REFERENCES public.tenants(id)
+        REFERENCES tenants(id)
         ON DELETE CASCADE,
 
     CONSTRAINT agents_retell_connection_fk
         FOREIGN KEY (retell_connection_id)
-        REFERENCES public.retell_connections(id)
+        REFERENCES retell_connections(id)
         ON DELETE RESTRICT,
 
     CONSTRAINT agents_tenant_retell_id_unique
@@ -278,10 +280,10 @@ CREATE TABLE public.agents (
 
 
 CREATE INDEX agents_tenant_id_idx
-    ON public.agents(tenant_id);
+    ON agents(tenant_id);
 
 CREATE INDEX agents_retell_connection_id_idx
-    ON public.agents(retell_connection_id);
+    ON agents(retell_connection_id);
 
 
 -- ============================================================
@@ -290,7 +292,7 @@ CREATE INDEX agents_retell_connection_id_idx
 -- Keeps updated_at current whenever a row is modified.
 -- ============================================================
 
-CREATE OR REPLACE FUNCTION public.set_updated_at()
+CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
@@ -306,65 +308,65 @@ $$;
 -- ============================================================
 
 CREATE TRIGGER users_set_updated_at
-BEFORE UPDATE ON public.users
+BEFORE UPDATE ON users
 FOR EACH ROW
-EXECUTE FUNCTION public.set_updated_at();
+EXECUTE FUNCTION set_updated_at();
 
 
 CREATE TRIGGER tenants_set_updated_at
-BEFORE UPDATE ON public.tenants
+BEFORE UPDATE ON tenants
 FOR EACH ROW
-EXECUTE FUNCTION public.set_updated_at();
+EXECUTE FUNCTION set_updated_at();
 
 
 CREATE TRIGGER memberships_set_updated_at
-BEFORE UPDATE ON public.memberships
+BEFORE UPDATE ON memberships
 FOR EACH ROW
-EXECUTE FUNCTION public.set_updated_at();
+EXECUTE FUNCTION set_updated_at();
 
 
 CREATE TRIGGER tenant_storage_set_updated_at
-BEFORE UPDATE ON public.tenant_storage
+BEFORE UPDATE ON tenant_storage
 FOR EACH ROW
-EXECUTE FUNCTION public.set_updated_at();
+EXECUTE FUNCTION set_updated_at();
 
 
 CREATE TRIGGER retell_connections_set_updated_at
-BEFORE UPDATE ON public.retell_connections
+BEFORE UPDATE ON retell_connections
 FOR EACH ROW
-EXECUTE FUNCTION public.set_updated_at();
+EXECUTE FUNCTION set_updated_at();
 
 
 CREATE TRIGGER agents_set_updated_at
-BEFORE UPDATE ON public.agents
+BEFORE UPDATE ON agents
 FOR EACH ROW
-EXECUTE FUNCTION public.set_updated_at();
+EXECUTE FUNCTION set_updated_at();
 
 
 -- ============================================================
 -- COMMENTS
 -- ============================================================
 
-COMMENT ON TABLE public.users IS
+COMMENT ON TABLE users IS
     'Application-level users. Authentication credentials are managed by the authentication provider.';
 
-COMMENT ON TABLE public.tenants IS
+COMMENT ON TABLE tenants IS
     'Independent customer/account boundaries within the application.';
 
-COMMENT ON TABLE public.memberships IS
+COMMENT ON TABLE memberships IS
     'Maps users to tenants and defines the user role within each tenant.';
 
-COMMENT ON TABLE public.tenant_storage IS
+COMMENT ON TABLE tenant_storage IS
     'Defines the physical storage strategy used for a tenant''s operational data.';
 
-COMMENT ON TABLE public.retell_connections IS
+COMMENT ON TABLE retell_connections IS
     'Retell account/connection configuration associated with a tenant.';
 
-COMMENT ON TABLE public.agents IS
+COMMENT ON TABLE agents IS
     'Maps tenant-owned application agents to Retell agents.';
 
-COMMENT ON COLUMN public.retell_connections.credentials_secret_ref IS
+COMMENT ON COLUMN retell_connections.credentials_secret_ref IS
     'Opaque reference to credentials stored in an external secrets manager. Never store the actual secret here.';
 
-COMMENT ON COLUMN public.tenant_storage.database_identifier IS
+COMMENT ON COLUMN tenant_storage.database_identifier IS
     'Opaque infrastructure identifier for the dedicated database. Never store credentials or connection strings here.';
