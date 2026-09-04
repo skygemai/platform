@@ -1,0 +1,17 @@
+BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+DROP TABLE tenants CASCADE;
+
+DROP TABLE app_users CASCADE;
+
+DROP TABLE agent_configurations CASCADE;
+
+DROP TABLE calls CASCADE;
+
+DROP TABLE messages CASCADE;
+
+DROP TABLE audit_events CASCADE;
+
+COMMIT;
