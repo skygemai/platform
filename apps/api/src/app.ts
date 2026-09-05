@@ -25,7 +25,13 @@ import { MessagingController } from "./modules/messaging/messaging.controller.js
 import { MessagingRepository } from "./modules/messaging/messaging.repository.js";
 import { createMessagingRouter } from "./modules/messaging/messaging.routes.js";
 import { MessagingService } from "./modules/messaging/messaging.service.js";
-import retellCallsRouter from "./routes/retell-calls.js";
+import { TenantsController } from "./modules/tenants/tenants.controller.js";
+import { TenantsRepository } from "./modules/tenants/tenants.repository.js";
+import { createTenantsRouter } from "./modules/tenants/tenants.routes.js";
+import { UsersController } from "./modules/users/users.controller.js";
+import { UsersRepository } from "./modules/users/users.repository.js";
+import { createUsersRouter } from "./modules/users/users.routes.js";
+import { createRetellCallsRouter } from "./routes/retell-calls.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -66,6 +72,12 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
     }
   });
 
+  const usersController = new UsersController(
+    new UsersRepository(pool)
+  );
+  const tenantsController = new TenantsController(
+    new TenantsRepository(pool)
+  );
   const callsController = new CallsController(new CallsService(new CallsRepository(pool)));
   const analyticsController = new AnalyticsController(
     new AnalyticsService(new AnalyticsRepository(pool))
@@ -80,11 +92,13 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
 
   const authenticateUser = createUserAuthenticator(environment);
   const requireTenantAccess = createTenantAccessMiddleware(pool);
+  app.use("/api/users", createUsersRouter(usersController));
+  app.use("/api/tenants", createTenantsRouter(tenantsController));
   app.use("/v1/portal", authenticateUser, requireTenantAccess);
   app.use("/v1/portal/calls", createCallsRouter(callsController));
   app.use("/v1/portal/analytics", createAnalyticsRouter(analyticsController));
   app.use("/v1/portal/messages", createMessagingRouter(messagingController));
-
+  
   app.use(
     "/v1/agent-actions",
     agentLimiter,
@@ -93,7 +107,10 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
   );
 
   // Retell test route
-  app.use("/api/retell/calls", retellCallsRouter);
+  app.use(
+    "/api/retell/calls",
+    createRetellCallsRouter(environment.RETELL_API_KEY)
+  );
 
   app.use((_request, response) => {
     response.status(404).json({ error: "Route not found" });

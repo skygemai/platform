@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { AnalyticsPage } from "./features/analytics/AnalyticsPage";
 import { CallsPage } from "./features/calls/CallsPage";
+import { TenantsPage } from "./features/tenants/TenantsPage";
+import { UsersPage } from "./features/users/UsersPage";
 
 export function App() {
   return (
@@ -10,6 +12,8 @@ export function App() {
         <Routes>
           <Route path="/" element={<CallsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/tenants" element={<TenantsPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -10,9 +10,10 @@ const environment: Environment = {
   NODE_ENV: "test",
   PORT: 8080,
   ALLOWED_ORIGINS: "http://localhost:5173",
-  DATABASE_URL: "postgresql://unused",
+  DATABASE_URL: "postgresql://test",
   AWS_REGION: "us-east-1",
-  SMS_PROVIDER: "console"
+  SMS_PROVIDER: "console",
+  RETELL_API_KEY: "test-retell-api-key"
 };
 
 test("GET /health reports that the process is running", async () => {
