@@ -21,19 +21,12 @@ export async function apiGet<T>(path: string): Promise<T> {
 }
 
 /** Local control-plane request. Protect these routes before production deployment. */
-export async function controlPlaneRequest<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const headers = new Headers(options.headers);
-
-  if (options.body) {
-    headers.set("Content-Type", "application/json");
-  }
-
+export async function controlPlaneRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...options,
-    headers
+    headers: options?.body
+      ? { "Content-Type": "application/json", ...options.headers }
+      : options?.headers
   });
 
   return responseBody<T>(response);
