@@ -31,7 +31,7 @@ import { createTenantsRouter } from "./modules/tenants/tenants.routes.js";
 import { UsersController } from "./modules/users/users.controller.js";
 import { UsersRepository } from "./modules/users/users.repository.js";
 import { createUsersRouter } from "./modules/users/users.routes.js";
-import retellCallsRouter from "./routes/retell-calls.js";
+import { createRetellCallsRouter } from "./routes/retell-calls.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -107,7 +107,10 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
   );
 
   // Retell test route
-  app.use("/api/retell/calls", retellCallsRouter);
+  app.use(
+    "/api/retell/calls",
+    createRetellCallsRouter(environment.RETELL_API_KEY)
+  );
 
   app.use((_request, response) => {
     response.status(404).json({ error: "Route not found" });
