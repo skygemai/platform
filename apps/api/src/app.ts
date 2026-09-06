@@ -32,6 +32,9 @@ import { UsersController } from "./modules/users/users.controller.js";
 import { UsersRepository } from "./modules/users/users.repository.js";
 import { createUsersRouter } from "./modules/users/users.routes.js";
 import { createRetellCallsRouter } from "./routes/retell-calls.js";
+import { MembershipsController } from "./modules/memberships/memberships.controller.js";
+import { MembershipsRepository } from "./modules/memberships/memberships.repository.js";
+import { createMembershipsRouter } from "./modules/memberships/memberships.routes.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -78,6 +81,11 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
   const tenantsController = new TenantsController(
     new TenantsRepository(pool)
   );
+
+  const membershipsController = new MembershipsController(
+    new MembershipsRepository(pool)
+  );
+
   const callsController = new CallsController(new CallsService(new CallsRepository(pool)));
   const analyticsController = new AnalyticsController(
     new AnalyticsService(new AnalyticsRepository(pool))
@@ -94,10 +102,12 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
   const requireTenantAccess = createTenantAccessMiddleware(pool);
   app.use("/api/users", createUsersRouter(usersController));
   app.use("/api/tenants", createTenantsRouter(tenantsController));
+  app.use("/api/memberships", createMembershipsRouter(membershipsController));
   app.use("/v1/portal", authenticateUser, requireTenantAccess);
   app.use("/v1/portal/calls", createCallsRouter(callsController));
   app.use("/v1/portal/analytics", createAnalyticsRouter(analyticsController));
   app.use("/v1/portal/messages", createMessagingRouter(messagingController));
+
   
   app.use(
     "/v1/agent-actions",

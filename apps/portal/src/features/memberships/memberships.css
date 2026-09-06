@@ -1,0 +1,51 @@
+.membership-summary {
+  grid-template-columns: repeat(3, minmax(180px, 260px));
+}
+
+.membership-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #cfd7e4;
+  border-radius: 9px;
+  color: #172033;
+  background: white;
+}
+
+.membership-form select:focus {
+  outline: 3px solid #3f6ff319;
+  border-color: #7897f6;
+}
+
+.role-pill {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #365bc1;
+  background: #e9efff;
+  text-transform: capitalize;
+  font-size: .78rem;
+  font-weight: 750;
+}
+
+.membership-table td:nth-child(2) code {
+  display: inline-block;
+  margin-top: 4px;
+}
+
+@media (max-width: 800px) {
+  .membership-summary {
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .membership-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .membership-table th:nth-child(3),
+  .membership-table td:nth-child(3) {
+    display: none;
+  }
+}
