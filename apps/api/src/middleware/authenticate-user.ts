@@ -10,6 +10,11 @@ function bearerToken(request: Request): string | null {
   return authorization.slice("Bearer ".length).trim();
 }
 
+function stringGroups(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
 export function createUserAuthenticator(environment: Environment) {
   let verifier: Verifier | null = null;
 
@@ -27,10 +32,22 @@ export function createUserAuthenticator(environment: Environment) {
     next: NextFunction
   ): Promise<void> {
     try {
+      // Local-only bypass. Vite must send these headers only in development mode.
       if (environment.NODE_ENV !== "production") {
         const developmentSub = request.header("x-dev-user-sub");
         if (developmentSub) {
-          request.userAuth = { cognitoSub: developmentSub };
+          const groups = (request.header("x-dev-user-groups") ?? "")
+            .split(",")
+            .map((group) => group.trim())
+            .filter(Boolean);
+
+          request.userAuth = {
+            cognitoSub: developmentSub,
+            groups,
+            ...(request.header("x-dev-user-email")
+              ? { email: request.header("x-dev-user-email")! }
+              : {})
+          };
           next();
           return;
         }
@@ -43,9 +60,16 @@ export function createUserAuthenticator(environment: Environment) {
       }
 
       const payload = await verifier.verify(token);
+      const email = typeof payload.email === "string"
+        ? payload.email
+        : typeof payload.username === "string"
+          ? payload.username
+          : undefined;
+
       request.userAuth = {
         cognitoSub: payload.sub,
-        ...(typeof payload.username === "string" ? { email: payload.username } : {})
+        groups: stringGroups(payload["cognito:groups"]),
+        ...(email ? { email } : {})
       };
       next();
     } catch {

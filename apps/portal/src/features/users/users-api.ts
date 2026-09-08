@@ -4,6 +4,7 @@ export interface User {
   id: string;
   email: string;
   displayName: string | null;
+  cognitoSub: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -12,6 +13,7 @@ export interface User {
 export interface UserInput {
   email: string;
   displayName: string | null;
+  cognitoSub: string | null;
   isActive: boolean;
 }
 

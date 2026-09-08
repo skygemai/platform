@@ -13,12 +13,14 @@ interface UserDialogProps {
 export function UserDialog({ user, open, saving, error, onClose, onSave }: UserDialogProps) {
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [cognitoSub, setCognitoSub] = useState("");
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     if (!open) return;
     setEmail(user?.email ?? "");
     setDisplayName(user?.displayName ?? "");
+    setCognitoSub(user?.cognitoSub ?? "");
     setIsActive(user?.isActive ?? true);
   }, [open, user]);
 
@@ -26,7 +28,12 @@ export function UserDialog({ user, open, saving, error, onClose, onSave }: UserD
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    await onSave({ email: email.trim(), displayName: displayName.trim() || null, isActive });
+    await onSave({
+      email: email.trim(),
+      displayName: displayName.trim() || null,
+      cognitoSub: cognitoSub.trim() || null,
+      isActive
+    });
   }
 
   return (
@@ -39,7 +46,8 @@ export function UserDialog({ user, open, saving, error, onClose, onSave }: UserD
         <form className="tenant-form" onSubmit={submit}>
           <label>Email address<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@company.com" required maxLength={320} autoFocus /></label>
           <label>Display name <span className="optional">Optional</span><input type="text" value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Full name" maxLength={120} /></label>
-          <label className="toggle-row"><span><strong>Active user</strong><small>Inactive users remain in the database.</small></span><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} /></label>
+          <label>Cognito subject <span className="optional">Optional until login is provisioned</span><input type="text" value={cognitoSub} onChange={(event) => setCognitoSub(event.target.value)} placeholder="Cognito sub UUID" maxLength={128} /></label>
+          <label className="toggle-row"><span><strong>Active user</strong><small>Inactive users cannot access tenant data.</small></span><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} /></label>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="modal-actions"><button className="button secondary" type="button" onClick={onClose} disabled={saving}>Cancel</button><button className="button primary" type="submit" disabled={saving}>{saving ? "Saving…" : user ? "Save changes" : "Add user"}</button></div>
         </form>

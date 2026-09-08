@@ -35,6 +35,11 @@ import { createRetellCallsRouter } from "./routes/retell-calls.js";
 import { MembershipsController } from "./modules/memberships/memberships.controller.js";
 import { MembershipsRepository } from "./modules/memberships/memberships.repository.js";
 import { createMembershipsRouter } from "./modules/memberships/memberships.routes.js";
+import { requirePlatformAdmin } from "./middleware/require-platform-admin.js";
+import { requireTenantRole } from "./middleware/require-tenant-role.js";
+import { SessionController } from "./modules/session/session.controller.js";
+import { SessionRepository } from "./modules/session/session.repository.js";
+import { createSessionRouter } from "./modules/session/session.routes.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -86,6 +91,8 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
     new MembershipsRepository(pool)
   );
 
+  const sessionController = new SessionController(new SessionRepository(pool));
+
   const callsController = new CallsController(new CallsService(new CallsRepository(pool)));
   const analyticsController = new AnalyticsController(
     new AnalyticsService(new AnalyticsRepository(pool))
@@ -100,14 +107,19 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
 
   const authenticateUser = createUserAuthenticator(environment);
   const requireTenantAccess = createTenantAccessMiddleware(pool);
-  app.use("/api/users", createUsersRouter(usersController));
-  app.use("/api/tenants", createTenantsRouter(tenantsController));
-  app.use("/api/memberships", createMembershipsRouter(membershipsController));
+  app.use("/api/session", authenticateUser, createSessionRouter(sessionController));
+  app.use("/api/users", authenticateUser, requirePlatformAdmin, createUsersRouter(usersController));
+  app.use("/api/tenants", authenticateUser, requirePlatformAdmin, createTenantsRouter(tenantsController));
+  app.use("/api/memberships", authenticateUser, requirePlatformAdmin, createMembershipsRouter(membershipsController));
+
   app.use("/v1/portal", authenticateUser, requireTenantAccess);
   app.use("/v1/portal/calls", createCallsRouter(callsController));
   app.use("/v1/portal/analytics", createAnalyticsRouter(analyticsController));
-  app.use("/v1/portal/messages", createMessagingRouter(messagingController));
 
+  app.use("/v1/portal/messages",
+    requireTenantRole(["owner", "admin", "member"]),
+    createMessagingRouter(messagingController)
+  );
   
   app.use(
     "/v1/agent-actions",
