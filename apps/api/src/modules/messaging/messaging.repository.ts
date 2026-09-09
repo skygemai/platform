@@ -47,7 +47,7 @@ export class MessagingRepository {
     try {
       await client.query("BEGIN");
       const inserted = await client.query<MessageRow>(
-        `INSERT INTO messages
+        `INSERT INTO shared.messages
           (tenant_id, to_number, body, status, idempotency_key, source, agent_configuration_id)
          VALUES ($1, $2, $3, 'queued', $4, $5, $6)
          ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
@@ -86,7 +86,7 @@ export class MessagingRepository {
   ): Promise<MessageRecord | null> {
     const result = await client.query<MessageRow>(
       `SELECT id, tenant_id, to_number, body, status, provider_message_id, idempotency_key
-         FROM messages
+         FROM shared.messages
         WHERE tenant_id = $1 AND idempotency_key = $2`,
       [tenantId, idempotencyKey]
     );
@@ -95,7 +95,7 @@ export class MessagingRepository {
 
   async markSent(messageId: string, providerMessageId: string, status: "queued" | "sent") {
     await this.pool.query(
-      `UPDATE messages
+      `UPDATE shared.messages
           SET provider_message_id = $2, status = $3, updated_at = NOW()
         WHERE id = $1`,
       [messageId, providerMessageId, status]
@@ -104,7 +104,7 @@ export class MessagingRepository {
 
   async markFailed(messageId: string, reason: string) {
     await this.pool.query(
-      `UPDATE messages
+      `UPDATE shared.messages
           SET status = 'failed', failure_reason = $2, updated_at = NOW()
         WHERE id = $1`,
       [messageId, reason.slice(0, 500)]
@@ -119,7 +119,7 @@ export class MessagingRepository {
     resourceId: string;
   }) {
     await this.pool.query(
-      `INSERT INTO audit_events
+      `INSERT INTO shared.audit_events
         (tenant_id, action, actor_type, actor_id, resource_type, resource_id)
        VALUES ($1, $2, $3, $4, 'message', $5)`,
       [input.tenantId, input.action, input.actorType, input.actorId, input.resourceId]
