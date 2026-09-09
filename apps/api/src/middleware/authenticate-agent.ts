@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express"
 import type { Pool } from "pg";
 
 interface AgentConfigurationRow {
@@ -27,7 +27,7 @@ export function createAgentAuthenticator(pool: Pool) {
 
       const result = await pool.query<AgentConfigurationRow>(
         `SELECT id, retell_agent_id, tenant_id
-           FROM agent_configurations
+           FROM shared.agent_configurations
           WHERE action_key_hash = $1 AND active = TRUE`,
         [hashAgentActionKey(key)]
       );

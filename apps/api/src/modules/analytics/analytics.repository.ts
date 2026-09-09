@@ -17,7 +17,7 @@ export class AnalyticsRepository {
               COUNT(*) FILTER (WHERE status = 'ended')::text AS completed_calls,
               COALESCE(SUM(duration_seconds), 0)::text AS total_duration_seconds,
               COALESCE(AVG(duration_seconds), 0)::text AS average_duration_seconds
-         FROM calls
+         FROM shared.calls
         WHERE tenant_id = $1`,
       [tenantId]
     );

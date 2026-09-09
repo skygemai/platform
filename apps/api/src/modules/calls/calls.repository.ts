@@ -38,7 +38,7 @@ export class CallsRepository {
     const result = await this.pool.query<CallRow>(
       `SELECT id, external_call_id, tenant_id, started_at, ended_at, status,
               direction, from_number, to_number, duration_seconds, summary
-         FROM calls
+         FROM shared.calls
         WHERE tenant_id = $1
         ORDER BY started_at DESC
         LIMIT $2 OFFSET $3`,
@@ -51,7 +51,7 @@ export class CallsRepository {
     const result = await this.pool.query<CallRow>(
       `SELECT id, external_call_id, tenant_id, started_at, ended_at, status,
               direction, from_number, to_number, duration_seconds, summary
-         FROM calls
+         FROM shared.calls
         WHERE tenant_id = $1 AND id = $2`,
       [tenantId, callId]
     );
