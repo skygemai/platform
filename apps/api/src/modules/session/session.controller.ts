@@ -25,6 +25,10 @@ export class SessionController {
         return;
       }
 
+      if (databaseUser) {
+        await this.repository.acceptPendingInvitations(identity.cognitoSub);
+      }
+
       const tenants = isPlatformAdmin
         ? await this.repository.listForPlatformAdmin()
         : await this.repository.listForUser(identity.cognitoSub);

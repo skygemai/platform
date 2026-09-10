@@ -1,0 +1,17 @@
+.tenant-form select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #344054;
+  background: #fff;
+  font: inherit;
+}
+
+.dialog-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.5;
+}

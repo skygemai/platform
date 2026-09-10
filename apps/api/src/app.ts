@@ -40,6 +40,11 @@ import { requireTenantRole } from "./middleware/require-tenant-role.js";
 import { SessionController } from "./modules/session/session.controller.js";
 import { SessionRepository } from "./modules/session/session.repository.js";
 import { createSessionRouter } from "./modules/session/session.routes.js";
+import { CognitoInvitationsClient } from "./integrations/aws/cognito-invitations.client.js";
+import { InvitationsController } from "./modules/invitations/invitations.controller.js";
+import { InvitationsRepository } from "./modules/invitations/invitations.repository.js";
+import { createInvitationsRouter } from "./modules/invitations/invitations.routes.js";
+import { InvitationsService } from "./modules/invitations/invitations.service.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -91,6 +96,16 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
     new MembershipsRepository(pool)
   );
 
+  const invitationsController = new InvitationsController(
+    new InvitationsService(
+      new InvitationsRepository(pool),
+      new CognitoInvitationsClient(
+        environment.AWS_REGION,
+        environment.COGNITO_USER_POOL_ID
+      )
+    )
+  );
+
   const sessionController = new SessionController(new SessionRepository(pool));
 
   const callsController = new CallsController(new CallsService(new CallsRepository(pool)));
@@ -111,6 +126,12 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
   app.use("/api/users", authenticateUser, requirePlatformAdmin, createUsersRouter(usersController));
   app.use("/api/tenants", authenticateUser, requirePlatformAdmin, createTenantsRouter(tenantsController));
   app.use("/api/memberships", authenticateUser, requirePlatformAdmin, createMembershipsRouter(membershipsController));
+  app.use(
+    "/api/invitations",
+    authenticateUser,
+    requirePlatformAdmin,
+    createInvitationsRouter(invitationsController)
+  );
 
   app.use("/v1/portal", authenticateUser, requireTenantAccess);
   app.use("/v1/portal/calls", createCallsRouter(callsController));

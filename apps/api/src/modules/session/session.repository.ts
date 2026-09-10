@@ -40,6 +40,20 @@ export class SessionRepository {
     return row ? { email: row.email, displayName: row.display_name } : null;
   }
 
+  async acceptPendingInvitations(cognitoSub: string): Promise<void> {
+    await this.pool.query(
+      `UPDATE control_plane.user_invitations AS invitation
+          SET status = 'accepted',
+              accepted_at = COALESCE(invitation.accepted_at, now()),
+              updated_at = now()
+         FROM control_plane.users AS app_user
+        WHERE invitation.user_id = app_user.id
+          AND app_user.cognito_sub = $1
+          AND invitation.status = 'pending'`,
+      [cognitoSub]
+    );
+  }
+
   async listForUser(cognitoSub: string): Promise<SessionTenant[]> {
     const result = await this.pool.query<SessionTenantRow>(
       `SELECT tenant.id, tenant.name, tenant.slug, membership.role
