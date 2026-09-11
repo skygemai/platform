@@ -1,0 +1,11 @@
+.agent-dialog-backdrop { align-items: center; background: rgba(11, 20, 36, .58); display: flex; inset: 0; justify-content: center; padding: 24px; position: fixed; z-index: 1100; }
+.agent-dialog { background: #fff; border-radius: 16px; box-shadow: 0 24px 70px rgba(10, 22, 45, .28); display: grid; gap: 18px; max-width: 600px; padding: 24px; width: 100%; }
+.agent-dialog > header { align-items: start; display: flex; justify-content: space-between; }
+.agent-dialog h2 { margin: 3px 0 0; }
+.agent-dialog > label { color: #526078; display: grid; font-size: 13px; font-weight: 700; gap: 7px; }
+.agent-dialog input[type="text"], .agent-dialog input:not([type]) { border: 1px solid #ccd6e5; border-radius: 9px; font: inherit; min-height: 42px; padding: 8px 11px; }
+.agent-dialog .agent-checkbox { align-items: center; display: flex; gap: 8px; }
+.agent-dialog footer { display: flex; gap: 10px; justify-content: flex-end; }
+.action-key-dialog { max-width: 680px; }
+.action-key-value { background: #f3f6fb; border: 1px solid #dbe3ef; border-radius: 10px; overflow-wrap: anywhere; padding: 16px; user-select: all; }
+.action-key-warning { color: #9b4b19; font-size: 13px; margin: 0; }
