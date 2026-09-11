@@ -45,6 +45,7 @@ import { InvitationsController } from "./modules/invitations/invitations.control
 import { InvitationsRepository } from "./modules/invitations/invitations.repository.js";
 import { createInvitationsRouter } from "./modules/invitations/invitations.routes.js";
 import { InvitationsService } from "./modules/invitations/invitations.service.js";
+import { TenantDataLocator } from "./data/tenant-data-locator.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -108,10 +109,14 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
 
   const sessionController = new SessionController(new SessionRepository(pool));
 
-  const callsController = new CallsController(new CallsService(new CallsRepository(pool)));
+  const tenantDataLocator = new TenantDataLocator(pool);
+  const callsController = new CallsController(
+    new CallsService(new CallsRepository(pool, tenantDataLocator))
+  );
   const analyticsController = new AnalyticsController(
     new AnalyticsService(new AnalyticsRepository(pool))
   );
+
   const messagingService = new MessagingService(
     new MessagingRepository(pool),
     smsProvider,
