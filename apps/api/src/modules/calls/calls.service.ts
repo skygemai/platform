@@ -1,15 +1,20 @@
-import type { CallsPage } from "@skygem/shared";
+import type { UserRole } from "@skygem/shared";
+import { callPermissionsFor } from "./calls.permissions.js";
 import type { CallsRepository } from "./calls.repository.js";
+import type { ListCallsQuery } from "./calls.schemas.js";
 
 export class CallsService {
   constructor(private readonly repository: CallsRepository) {}
 
-  async list(tenantId: string, limit: number, offset: number): Promise<CallsPage> {
-    const items = await this.repository.listForTenant(tenantId, limit, offset);
-    return { items, limit, offset };
+  listAgents(tenantId: string) {
+    return this.repository.listAgents(tenantId);
   }
 
-  async get(tenantId: string, callId: string) {
-    return this.repository.findForTenant(tenantId, callId);
+  list(tenantId: string, query: ListCallsQuery) {
+    return this.repository.list(tenantId, query);
+  }
+
+  get(tenantId: string, callId: string, role: UserRole) {
+    return this.repository.find(tenantId, callId, callPermissionsFor(role));
   }
 }
