@@ -7,7 +7,7 @@ import { CallsPage } from "./features/calls/CallsPage";
 import { TenantsPage } from "./features/tenants/TenantsPage";
 import { UsersPage } from "./features/users/UsersPage";
 import { MembershipsPage } from "./features/memberships/MembershipsPage";
-
+import { AgentsPage } from "./features/agents/AgentsPage";
 
 function PortalRoutes() {
   const { selectedTenantId } = useAuth();
@@ -21,6 +21,7 @@ function PortalRoutes() {
         <Route path="/users" element={<RequirePlatformAdmin><UsersPage /></RequirePlatformAdmin>} />
         <Route path="/tenants" element={<RequirePlatformAdmin><TenantsPage /></RequirePlatformAdmin>} />
         <Route path="/memberships" element={<RequirePlatformAdmin><MembershipsPage /></RequirePlatformAdmin>} />
+        <Route path="/agents" element={<RequirePlatformAdmin><AgentsPage /></RequirePlatformAdmin>} />
       </Routes>
     </Layout>
   );

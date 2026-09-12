@@ -46,6 +46,10 @@ import { InvitationsRepository } from "./modules/invitations/invitations.reposit
 import { createInvitationsRouter } from "./modules/invitations/invitations.routes.js";
 import { InvitationsService } from "./modules/invitations/invitations.service.js";
 import { TenantDataLocator } from "./data/tenant-data-locator.js";
+import { AgentConfigurationsController } from "./modules/agent-configurations/agent-configurations.controller.js";
+import { AgentConfigurationsRepository } from "./modules/agent-configurations/agent-configurations.repository.js";
+import { createAgentConfigurationsRouter } from "./modules/agent-configurations/agent-configurations.routes.js";
+import { AgentConfigurationsService } from "./modules/agent-configurations/agent-configurations.service.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -124,7 +128,11 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
   );
   const messagingController = new MessagingController(messagingService);
   const agentActionsController = new AgentActionsController(messagingService);
-
+  const agentConfigurationsController = new AgentConfigurationsController(
+    new AgentConfigurationsService(
+      new AgentConfigurationsRepository(pool, tenantDataLocator)
+    )
+  );
   const authenticateUser = createUserAuthenticator(environment);
   const requireTenantAccess = createTenantAccessMiddleware(pool);
   app.use("/api/session", authenticateUser, createSessionRouter(sessionController));
@@ -137,6 +145,8 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
     requirePlatformAdmin,
     createInvitationsRouter(invitationsController)
   );
+  app.use("/api/agent-configurations", authenticateUser, requirePlatformAdmin, createAgentConfigurationsRouter(agentConfigurationsController)
+);
 
   app.use("/v1/portal", authenticateUser, requireTenantAccess);
   app.use("/v1/portal/calls", createCallsRouter(callsController));

@@ -19,7 +19,8 @@ export function Layout({ children }: { children: ReactNode }) {
               <div className="nav-section">Administration</div>
               <NavLink to="/users">Users</NavLink>
               <NavLink to="/tenants">Tenants</NavLink>
-	      <NavLink to="/memberships">Memberships</NavLink>
+	            <NavLink to="/memberships">Memberships</NavLink>
+              <NavLink to="/agents">Agents</NavLink>
            </>
 	)}
 	</nav>
