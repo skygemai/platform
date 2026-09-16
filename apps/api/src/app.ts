@@ -50,6 +50,10 @@ import { AgentConfigurationsController } from "./modules/agent-configurations/ag
 import { AgentConfigurationsRepository } from "./modules/agent-configurations/agent-configurations.repository.js";
 import { createAgentConfigurationsRouter } from "./modules/agent-configurations/agent-configurations.routes.js";
 import { AgentConfigurationsService } from "./modules/agent-configurations/agent-configurations.service.js";
+import { RetellWebhooksController } from "./modules/retell-webhooks/retell-webhooks.controller.js";
+import { RetellWebhooksRepository } from "./modules/retell-webhooks/retell-webhooks.repository.js";
+import { createRetellWebhooksRouter } from "./modules/retell-webhooks/retell-webhooks.routes.js";
+import { RetellWebhooksService } from "./modules/retell-webhooks/retell-webhooks.service.js";
 
 export interface AppDependencies {
   environment: Environment;
@@ -63,8 +67,10 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
 
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
+
   app.use(requestContext);
   app.use(helmet());
+
   app.use(cors({
     credentials: true,
     origin(origin, callback) {
@@ -72,6 +78,21 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
       return callback(new Error("Origin not allowed"));
     }
   }));
+
+  const tenantDataLocator = new TenantDataLocator(pool);
+
+  const retellWebhooksController = new RetellWebhooksController(
+    new RetellWebhooksService(
+      new RetellWebhooksRepository(pool, tenantDataLocator)
+    ),
+    environment.RETELL_API_KEY
+  );
+
+  app.use(
+    "/webhooks/retell",
+    createRetellWebhooksRouter(retellWebhooksController)
+  );
+
   app.use(express.json({ limit: "1mb" }));
 
   const generalLimiter = rateLimit({ windowMs: 60_000, limit: 120 });
@@ -113,7 +134,6 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
 
   const sessionController = new SessionController(new SessionRepository(pool));
 
-  const tenantDataLocator = new TenantDataLocator(pool);
   const callsController = new CallsController(
     new CallsService(new CallsRepository(pool, tenantDataLocator))
   );
