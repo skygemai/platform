@@ -9,7 +9,6 @@
 --   memberships
 --   tenant_storage
 --   retell_connections
---   agents
 --
 -- This schema remains centralized even when tenant application
 -- data is moved into a dedicated schema or database.
@@ -238,53 +237,6 @@ CREATE INDEX retell_connections_tenant_id_idx
     ON retell_connections(tenant_id);
 
 
--- ============================================================
--- AGENTS
---
--- Maps our tenant-owned agent to the corresponding Retell
--- agent.
---
--- Agents remain in the central control plane because they are
--- needed to identify the tenant when processing Retell events.
--- ============================================================
-
-CREATE TABLE agents (
-    id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    tenant_id               uuid NOT NULL,
-    retell_connection_id    uuid NOT NULL,
-
-    retell_agent_id         text NOT NULL,
-
-    name                    text,
-    description             text,
-
-    is_active               boolean NOT NULL DEFAULT true,
-
-    created_at              timestamptz NOT NULL DEFAULT now(),
-    updated_at              timestamptz NOT NULL DEFAULT now(),
-
-    CONSTRAINT agents_tenant_fk
-        FOREIGN KEY (tenant_id)
-        REFERENCES tenants(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT agents_retell_connection_fk
-        FOREIGN KEY (retell_connection_id)
-        REFERENCES retell_connections(id)
-        ON DELETE RESTRICT,
-
-    CONSTRAINT agents_tenant_retell_id_unique
-        UNIQUE (tenant_id, retell_agent_id)
-);
-
-
-CREATE INDEX agents_tenant_id_idx
-    ON agents(tenant_id);
-
-CREATE INDEX agents_retell_connection_id_idx
-    ON agents(retell_connection_id);
-
 
 -- ============================================================
 -- TRIGGER FUNCTION: updated_at
@@ -337,12 +289,6 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
 
-CREATE TRIGGER agents_set_updated_at
-BEFORE UPDATE ON agents
-FOR EACH ROW
-EXECUTE FUNCTION set_updated_at();
-
-
 -- ============================================================
 -- COMMENTS
 -- ============================================================
@@ -361,9 +307,6 @@ COMMENT ON TABLE tenant_storage IS
 
 COMMENT ON TABLE retell_connections IS
     'Retell account/connection configuration associated with a tenant.';
-
-COMMENT ON TABLE agents IS
-    'Maps tenant-owned application agents to Retell agents.';
 
 COMMENT ON COLUMN retell_connections.credentials_secret_ref IS
     'Opaque reference to credentials stored in an external secrets manager. Never store the actual secret here.';
