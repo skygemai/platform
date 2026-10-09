@@ -13,7 +13,17 @@ const environment: Environment = {
   DATABASE_URL: "postgresql://test",
   AWS_REGION: "us-east-1",
   SMS_PROVIDER: "console",
-  RETELL_API_KEY: "test-retell-api-key"
+  SMS_FROM_NUMBER: "111-222-3333",
+  RETELL_API_KEY_SECRET_ID: "test-retell-api-key",
+  RETELL_API_KEY: "",
+  RETELL_WEBHOOK_SECRET: "webhook-secret",
+  DB_HOST: "aws",
+  DB_PORT: "5432",
+  DB_NAME: "skygem",
+  DB_SECRET_ARN: "abc123",
+  RDS_CA_PATH: "",
+  COGNITO_USER_POOL_ID: "",
+  COGNITO_CLIENT_ID: "",
 };
 
 test("GET /health reports that the process is running", async () => {
@@ -25,3 +35,5 @@ test("GET /health reports that the process is running", async () => {
   const response = await request(app).get("/health").expect(200);
   assert.deepEqual(response.body, { status: "ok" });
 });
+
+
