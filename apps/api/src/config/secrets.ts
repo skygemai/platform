@@ -110,7 +110,7 @@ export async function resolveEnvironment(
   if (!input.DB_SECRET_ARN) {
     throw new Error("DB_SECRET_ARN is required in production");
   }
-  if (!input.RETELL_API_KEY_SECRET_ID) {
+  if (!input.RETELL_API_KEY_SECRET_ARN) {
     throw new Error("RETELL_API_KEY_SECRET_ID is required in production");
   }
   if (!input.RDS_CA_PATH) {
@@ -119,7 +119,7 @@ export async function resolveEnvironment(
 
   const [databaseSecret, retellSecret] = await Promise.all([
     secrets.getSecretString(input.DB_SECRET_ARN),
-    secrets.getSecretString(input.RETELL_API_KEY_SECRET_ID)
+    secrets.getSecretString(input.RETELL_API_KEY_SECRET_ARN)
   ]);
 
   return {

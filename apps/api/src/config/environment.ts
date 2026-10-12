@@ -14,20 +14,20 @@ const environmentInputSchema = z.object({
   COGNITO_CLIENT_ID: z.string().optional(),
   SMS_PROVIDER: z.enum(["console"]).default("console"),
   SMS_FROM_NUMBER: z.string().optional(),
-  RETELL_API_KEY_SECRET_ID: z.string().min(1).optional(),
-  RETELL_WEBHOOK_SECRET: z.string().optional(),
+  RETELL_API_KEY_SECRET_ARN: z.string().min(1),
   RETELL_API_KEY: z.string().min(1).optional(),
+  RETELL_WEBHOOK_SECRET: z.string().optional(),
   DATABASE_URL: z.string().min(1).optional()
 });
 
 export type EnvironmentInput = z.infer<typeof environmentInputSchema>;
 
-export type Environment = Omit<EnvironmentInput, "DB_HOST" | "DB_PORT" | "DB_NAME" | "DB_SECRET_ARN" |"RETELL_API_KEY"> & {
+export type Environment = Omit<EnvironmentInput, "DB_HOST" | "DB_PORT" | "DB_NAME" | "DB_SECRET_ARN" |"RETELL_API_KEY_SECRET_ARN"> & {
   DB_HOST: string;
   DB_PORT: string;
   DB_NAME: string;
   DB_SECRET_ARN: string;
-  RETELL_API_KEY: string;
+  RETELL_API_KEY_SECRET_ARN: string;
   DATABASE_URL: string;
 };
 

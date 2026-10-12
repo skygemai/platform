@@ -14,7 +14,7 @@ const environment: Environment = {
   AWS_REGION: "us-east-1",
   SMS_PROVIDER: "console",
   SMS_FROM_NUMBER: "111-222-3333",
-  RETELL_API_KEY_SECRET_ID: "test-retell-api-key",
+  RETELL_API_KEY_SECRET_ARN: "test-retell-api-key",
   RETELL_API_KEY: "",
   RETELL_WEBHOOK_SECRET: "webhook-secret",
   DB_HOST: "aws",
