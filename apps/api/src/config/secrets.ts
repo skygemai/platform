@@ -59,10 +59,10 @@ function createDatabaseUrl(
   const password = requiredString(secret, "password", "Database secret");
 
   const url = new URL("postgresql://");
-  url.username = username;
-  url.password = password;
   url.hostname = input.DB_HOST;
   url.port = input.DB_PORT;
+  url.username = username;
+  url.password = password;
   url.pathname = `/${input.DB_NAME}`;
   return url.toString();
 }
