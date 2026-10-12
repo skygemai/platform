@@ -50,26 +50,20 @@ function requiredString(object: JsonObject, key: string, label: string): string 
   return value;
 }
 
-function createDatabaseUrl(secretString: string): string {
+function createDatabaseUrl(
+  secretString: string,
+  input: EnvironmentInput
+): string {
   const secret = parseJsonObject(secretString, "Database secret");
   const username = requiredString(secret, "username", "Database secret");
   const password = requiredString(secret, "password", "Database secret");
-  const host = requiredString(secret, "host", "Database secret");
-  const databaseValue = secret.dbname ?? secret.database;
-  const database = typeof databaseValue === "string" && databaseValue.length > 0
-    ? databaseValue
-    : "skygem";
-  const portValue = secret.port ?? 5432;
-  const port = typeof portValue === "number" || typeof portValue === "string"
-    ? String(portValue)
-    : "5432";
 
   const url = new URL("postgresql://");
   url.username = username;
   url.password = password;
-  url.hostname = host;
-  url.port = port;
-  url.pathname = `/${database}`;
+  url.hostname = input.DB_HOST;
+  url.port = input.DB_PORT;
+  url.pathname = `/${input.DB_NAME}`;
   return url.toString();
 }
 
@@ -124,7 +118,7 @@ export async function resolveEnvironment(
 
   return {
     ...input,
-    DATABASE_URL: createDatabaseUrl(databaseSecret),
+    DATABASE_URL: createDatabaseUrl(databaseSecret, input),
     RETELL_API_KEY: readRetellApiKey(retellSecret)
   };
 }
