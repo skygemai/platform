@@ -22,13 +22,14 @@ const environmentInputSchema = z.object({
 
 export type EnvironmentInput = z.infer<typeof environmentInputSchema>;
 
-export type Environment = Omit<EnvironmentInput, "DB_HOST" | "DB_PORT" | "DB_NAME" | "DB_SECRET_ARN" |"RETELL_API_KEY_SECRET_ARN"> & {
+export type Environment = Omit<EnvironmentInput, "DB_HOST" | "DB_PORT" | "DB_NAME" | "DB_SECRET_ARN" | "RETELL_API_KEY_SECRET_ARN" | "RETELL_API_KEY" > & {
   DB_HOST: string;
   DB_PORT: string;
   DB_NAME: string;
   DB_SECRET_ARN: string;
   RETELL_API_KEY_SECRET_ARN: string;
   DATABASE_URL: string;
+  RETELL_API_KEY: string
 };
 
 export function loadEnvironment(
