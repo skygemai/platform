@@ -11,19 +11,34 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="brand"><span className="brand-gem">S</span>SkyGem AI</div>
         <nav aria-label="Main navigation">
           <div className="nav-section">Client portal</div>
-          <NavLink to="/">Calls</NavLink>
-          <NavLink to="/analytics">Analytics</NavLink>
 
           {auth.user?.isPlatformAdmin && (
             <>
-              <div className="nav-section">Administration</div>
-              <NavLink to="/users">Users</NavLink>
-              <NavLink to="/tenants">Tenants</NavLink>
-	            <NavLink to="/memberships">Memberships</NavLink>
-              <NavLink to="/agents">Agents</NavLink>
+          <NavLink to="/">Calls</NavLink>
            </>
-	)}
-	</nav>
+	        )}
+          <NavLink to="/analytics">Analytics</NavLink>
+
+          {(auth.user?.isPlatformAdmin ||
+            auth.tenants.some((tenant) => tenant.role === "owner")) && (
+            <>
+              <div className="nav-section">Administration</div>
+
+              {auth.user?.isPlatformAdmin && (
+                <NavLink to="/users">Users</NavLink>
+              )}
+
+              <NavLink to="/tenants">Tenants</NavLink>
+
+              {auth.user?.isPlatformAdmin && (
+                <>
+                  <NavLink to="/memberships">Memberships</NavLink>
+                  <NavLink to="/agents">Agents</NavLink>
+                </>
+              )}
+            </>
+          )}
+	      </nav>
         <div className="environment"><span /> Secure portal</div>
       </aside>
 

@@ -157,7 +157,7 @@ export function createApp({ environment, pool, smsProvider }: AppDependencies) {
   const requireTenantAccess = createTenantAccessMiddleware(pool);
   app.use("/api/session", authenticateUser, createSessionRouter(sessionController));
   app.use("/api/users", authenticateUser, requirePlatformAdmin, createUsersRouter(usersController));
-  app.use("/api/tenants", authenticateUser, requirePlatformAdmin, createTenantsRouter(tenantsController));
+  app.use("/api/tenants", authenticateUser, createTenantsRouter(tenantsController));
   app.use("/api/memberships", authenticateUser, requirePlatformAdmin, createMembershipsRouter(membershipsController));
   app.use(
     "/api/invitations",

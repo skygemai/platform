@@ -8,6 +8,7 @@ interface TenantDialogProps {
   error: string | null;
   onClose: () => void;
   onSave: (input: TenantInput) => Promise<void>;
+  canChangeActive: boolean;
 }
 
 function slugify(value: string): string {
@@ -24,7 +25,8 @@ export function TenantDialog({
   saving,
   error,
   onClose,
-  onSave
+  onSave,
+  canChangeActive
 }: TenantDialogProps) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -88,11 +90,12 @@ export function TenantDialog({
             <small>Lowercase letters, numbers, and underscores.</small>
           </label>
 
-          <label className="toggle-row">
-            <span><strong>Active tenant</strong><small>Inactive tenants remain in the database.</small></span>
-            <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
-          </label>
-
+          {canChangeActive && (
+            <label className="toggle-row">
+              <span><strong>Active tenant</strong><small>Inactive tenants remain in the database.</small></span>
+              <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} />
+            </label>
+          )}
           {error && <p className="form-error" role="alert">{error}</p>}
 
           <div className="modal-actions">

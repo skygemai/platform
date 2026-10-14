@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { TenantDialog } from "./TenantDialog";
 import {
   createTenant,
-  deleteTenant,
+  disableTenant,
   listTenants,
   updateTenant,
   type Tenant,
   type TenantInput
 } from "./tenants-api";
+import { useAuth } from "../../auth/AuthContext";
 
 export function TenantsPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -19,6 +20,8 @@ export function TenantsPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const isPlatformAdmin = user?.isPlatformAdmin === true;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,7 +62,7 @@ export function TenantsPage() {
     setFormError(null);
     try {
       const saved = editingTenant
-        ? await updateTenant(editingTenant.id, input)
+        ? await updateTenant(editingTenant.id, isPlatformAdmin ? input : { name: input.name, slug: input.slug })
         : await createTenant(input);
 
       setTenants((current) => {
@@ -76,18 +79,23 @@ export function TenantsPage() {
     }
   }
 
-  async function remove(tenant: Tenant) {
-    const confirmed = window.confirm(
-      `Permanently delete ${tenant.name}? This is allowed only when it has no related records. Deactivate it instead if the account may be needed later.`
-    );
-    if (!confirmed) return;
+  async function disable(tenant: Tenant) {
+    if (!window.confirm(
+      `Disable ${tenant.name}? Its records will remain in the database.`
+    )) return;
 
     setDeletingId(tenant.id);
     try {
-      await deleteTenant(tenant.id);
-      setTenants((current) => current.filter((item) => item.id !== tenant.id));
+      await disableTenant(tenant.id);
+      setTenants((current) =>
+        current.map((item) =>
+          item.id === tenant.id ? { ...item, isActive: false } : item
+        )
+      );
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Unable to delete the tenant.");
+      window.alert(
+        error instanceof Error ? error.message : "Unable to disable the tenant."
+      );
     } finally {
       setDeletingId(null);
     }
@@ -103,7 +111,9 @@ export function TenantsPage() {
           <h2>Tenants</h2>
           <p className="page-copy">Manage customer accounts and their active status.</p>
         </div>
-        <button className="button primary" onClick={openCreate}>+ Add tenant</button>
+        {isPlatformAdmin && (
+          <button className="button primary" onClick={openCreate}>+ Add tenant</button>
+        )}
       </div>
 
       <div className="summary-cards">
@@ -130,7 +140,7 @@ export function TenantsPage() {
         ) : loadError ? (
           <div className="empty-state error-state"><h3>Couldn’t load tenants</h3><p>{loadError}</p><button className="button secondary" onClick={() => void load()}>Try again</button></div>
         ) : visibleTenants.length === 0 ? (
-          <div className="empty-state"><h3>{query ? "No matching tenants" : "No tenants yet"}</h3><p>{query ? "Try a different name or slug." : "Add the first customer account."}</p>{!query && <button className="button primary" onClick={openCreate}>+ Add tenant</button>}</div>
+          <div className="empty-state"><h3>{query ? "No matching tenants" : "No tenants yet"}</h3><p>{query ? "Try a different name or slug." : "Add the first customer account."}</p>{!query && isPlatformAdmin && <button className="button primary" onClick={openCreate}>+ Add tenant</button>}</div>
         ) : (
           <div className="table-wrap tenant-table">
             <table>
@@ -142,7 +152,18 @@ export function TenantsPage() {
                     <td><code>{tenant.slug}</code></td>
                     <td><span className={`status-pill ${tenant.isActive ? "active" : "inactive"}`}>{tenant.isActive ? "Active" : "Inactive"}</span></td>
                     <td>{new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(new Date(tenant.createdAt))}</td>
-                    <td><div className="table-actions"><button className="text-button" onClick={() => openEdit(tenant)}>Edit</button><button className="text-button danger" onClick={() => void remove(tenant)} disabled={deletingId === tenant.id}>{deletingId === tenant.id ? "Deleting…" : "Delete"}</button></div></td>
+                    <td><div className="table-actions">
+                      <button className="text-button" onClick={() => openEdit(tenant)}>Edit</button>
+                      {isPlatformAdmin && (
+                        <button
+                          className="text-button danger"
+                          onClick={() => void disable(tenant)}
+                          disabled={!tenant.isActive || deletingId === tenant.id}
+                        >
+                          {deletingId === tenant.id ? "Disabling…" : "Disable"}
+                        </button>
+                      )}
+                    </div></td>
                   </tr>
                 ))}
               </tbody>
@@ -151,7 +172,7 @@ export function TenantsPage() {
         )}
       </div>
 
-      <TenantDialog tenant={editingTenant} open={dialogOpen} saving={saving} error={formError} onClose={() => !saving && setDialogOpen(false)} onSave={save} />
+      <TenantDialog tenant={editingTenant} open={dialogOpen} saving={saving} error={formError} onClose={() => !saving && setDialogOpen(false)} onSave={save} canChangeActive={isPlatformAdmin}/>
     </section>
   );
 }

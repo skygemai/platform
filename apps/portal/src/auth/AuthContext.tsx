@@ -23,6 +23,7 @@ export interface SessionUser {
   email: string | null;
   displayName: string | null;
   isPlatformAdmin: boolean;
+  isClientMember: boolean;
 }
 
 interface SessionResponse {

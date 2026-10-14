@@ -28,14 +28,25 @@ export async function createTenant(input: TenantInput): Promise<Tenant> {
   return result.tenant;
 }
 
-export async function updateTenant(id: string, input: TenantInput): Promise<Tenant> {
-  const result = await controlPlaneRequest<{ tenant: Tenant }>(`/api/tenants/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(input)
-  });
+export type TenantUpdateInput =
+  Pick<TenantInput, "name" | "slug"> & { isActive?: boolean };
+
+export async function updateTenant(
+  id: string,
+  input: TenantUpdateInput
+): Promise<Tenant> {
+  const result = await controlPlaneRequest<{ tenant: Tenant }>(
+    `/api/tenants/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input)
+    }
+  );
   return result.tenant;
 }
 
-export async function deleteTenant(id: string): Promise<void> {
-  await controlPlaneRequest<void>(`/api/tenants/${id}`, { method: "DELETE" });
+export async function disableTenant(id: string): Promise<void> {
+  await controlPlaneRequest<void>(`/api/tenants/${id}/disable`, {
+    method: "POST"
+  });
 }

@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import type { TenantsRepository } from "./tenants.repository.js";
+import { PLATFORM_ADMIN_GROUP } from "../../middleware/require-platform-admin.js";
 
 const tenantIdSchema = z.string().uuid();
 
@@ -15,6 +16,10 @@ const tenantInputSchema = z.object({
   isActive: z.boolean().default(true)
 });
 
+const ownerTenantInputSchema = tenantInputSchema
+  .pick({ name: true, slug: true })
+  .strict();
+
 function postgresErrorCode(error: unknown): string | null {
   if (typeof error !== "object" || error === null || !("code" in error)) return null;
   return typeof error.code === "string" ? error.code : null;
@@ -24,12 +29,22 @@ export class TenantsController {
   constructor(private readonly repository: TenantsRepository) {}
 
   list = async (
-    _request: Request,
+    request: Request,
     response: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      response.json({ tenants: await this.repository.list() });
+      const identity = request.userAuth;
+      if (!identity) {
+        response.status(401).json({ error: "Authentication required" });
+        return;
+      }
+
+      const tenants = identity.groups.includes(PLATFORM_ADMIN_GROUP)
+        ? await this.repository.list()
+        : await this.repository.listForOwner(identity.cognitoSub);
+
+      response.json({ tenants });
     } catch (error) {
       next(error);
     }
@@ -60,11 +75,24 @@ export class TenantsController {
   ): Promise<void> => {
     try {
       const id = tenantIdSchema.parse(request.params.tenantId);
-      const input = tenantInputSchema.parse(request.body);
-      const tenant = await this.repository.update(id, input);
+      const identity = request.userAuth;
+      if (!identity) {
+        response.status(401).json({ error: "Authentication required" });
+        return;
+      }
+
+      const isPlatformAdmin = identity.groups.includes(PLATFORM_ADMIN_GROUP);
+
+      const tenant = isPlatformAdmin
+        ? await this.repository.update(id, tenantInputSchema.parse(request.body))
+        : await this.repository.updateForOwner(
+            id,
+            identity.cognitoSub,
+            ownerTenantInputSchema.parse(request.body)
+          );
 
       if (!tenant) {
-        response.status(404).json({ error: "Tenant not found" });
+        response.status(404).json({ error: "Tenant not found or you do not have permission to edit it" });
         return;
       }
 
@@ -78,24 +106,17 @@ export class TenantsController {
     }
   };
 
-  delete = async (
+  disable = async (
     request: Request,
     response: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       const id = tenantIdSchema.parse(request.params.tenantId);
-      const result = await this.repository.delete(id);
+      const disabled = await this.repository.disable(id);
 
-      if (result === "not_found") {
+      if (!disabled) {
         response.status(404).json({ error: "Tenant not found" });
-        return;
-      }
-
-      if (result === "has_dependencies") {
-        response.status(409).json({
-          error: "This tenant has related records and cannot be deleted. Deactivate it instead."
-        });
         return;
       }
 

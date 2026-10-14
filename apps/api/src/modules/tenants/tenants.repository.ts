@@ -7,8 +7,6 @@ export interface TenantInput {
   isActive: boolean;
 }
 
-export type TenantDeleteResult = "deleted" | "not_found" | "has_dependencies";
-
 interface TenantRow {
   id: string;
   name: string;
@@ -68,16 +66,71 @@ export class TenantsRepository {
     return result.rows[0] ? mapTenant(result.rows[0]) : null;
   }
 
-  async delete(id: string): Promise<TenantDeleteResult> {
+  async disable(id: string): Promise<boolean> {
     const result = await this.pool.query(
       `UPDATE control_plane.tenants
           SET is_active = FALSE,
-              updated_at = NOW()
+              updated_at = now()
         WHERE id = $1
         RETURNING id`,
       [id]
     );
 
-    return result.rowCount === 1 ? "deleted" : "not_found";
+    return result.rowCount === 1;
   }
+
+  async listForOwner(cognitoSub: string): Promise<Tenant[]> {
+  const result = await this.pool.query<TenantRow>(
+    `SELECT tenant.id, tenant.name, tenant.slug, tenant.is_active,
+            tenant.created_at, tenant.updated_at
+       FROM control_plane.tenants AS tenant
+      WHERE tenant.is_active = TRUE
+        AND EXISTS (
+          SELECT 1
+            FROM control_plane.memberships AS membership
+            JOIN control_plane.users AS app_user
+              ON app_user.id = membership.user_id
+           WHERE membership.tenant_id = tenant.id
+             AND app_user.cognito_sub = $1
+             AND app_user.is_active = TRUE
+             AND membership.is_active = TRUE
+             AND membership.role = 'owner'
+        )
+      ORDER BY lower(tenant.name)`,
+    [cognitoSub]
+  );
+
+  return result.rows.map(mapTenant);
+}
+
+async updateForOwner(
+  id: string,
+  cognitoSub: string,
+  input: Pick<TenantInput, "name" | "slug">
+): Promise<Tenant | null> {
+  const result = await this.pool.query<TenantRow>(
+    `UPDATE control_plane.tenants AS tenant
+        SET name = $1,
+            slug = $2,
+            updated_at = now()
+      WHERE tenant.id = $3
+        AND tenant.is_active = TRUE
+        AND EXISTS (
+          SELECT 1
+            FROM control_plane.memberships AS membership
+            JOIN control_plane.users AS app_user
+              ON app_user.id = membership.user_id
+           WHERE membership.tenant_id = tenant.id
+             AND app_user.cognito_sub = $4
+             AND app_user.is_active = TRUE
+             AND membership.is_active = TRUE
+             AND membership.role = 'owner'
+        )
+      RETURNING tenant.id, tenant.name, tenant.slug, tenant.is_active,
+                tenant.created_at, tenant.updated_at`,
+    [input.name, input.slug, id, cognitoSub]
+  );
+
+  return result.rows[0] ? mapTenant(result.rows[0]) : null;
+ }
 }
