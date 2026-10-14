@@ -69,32 +69,15 @@ export class TenantsRepository {
   }
 
   async delete(id: string): Promise<TenantDeleteResult> {
-    const result = await this.pool.query<{ deleted: boolean; still_exists: boolean }>(
-      `WITH deleted_tenant AS (
-         DELETE FROM control_plane.tenants AS tenant
-          WHERE tenant.id = $1
-            AND NOT EXISTS (
-              SELECT 1 FROM control_plane.memberships WHERE tenant_id = tenant.id
-            )
-            AND NOT EXISTS (
-              SELECT 1 FROM control_plane.tenant_storage WHERE tenant_id = tenant.id
-            )
-            AND NOT EXISTS (
-              SELECT 1 FROM control_plane.retell_connections WHERE tenant_id = tenant.id
-            )
-            AND NOT EXISTS (
-              SELECT 1 FROM control_plane.agents WHERE tenant_id = tenant.id
-            )
-         RETURNING id
-       )
-       SELECT
-         EXISTS (SELECT 1 FROM deleted_tenant) AS deleted,
-         EXISTS (SELECT 1 FROM control_plane.tenants WHERE id = $1) AS still_exists`,
+    const result = await this.pool.query(
+      `UPDATE control_plane.tenants
+          SET is_active = FALSE,
+              updated_at = NOW()
+        WHERE id = $1
+        RETURNING id`,
       [id]
     );
 
-    const outcome = result.rows[0]!;
-    if (outcome.deleted) return "deleted";
-    return outcome.still_exists ? "has_dependencies" : "not_found";
+    return result.rowCount === 1 ? "deleted" : "not_found";
   }
 }

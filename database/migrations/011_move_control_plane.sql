@@ -17,9 +17,6 @@ ALTER TABLE shared.tenant_storage
 ALTER TABLE shared.retell_connections
     SET SCHEMA control_plane;
 
-ALTER TABLE shared.agents
-    SET SCHEMA control_plane;
-
 ALTER FUNCTION shared.set_updated_at()
     SET SCHEMA control_plane;
 

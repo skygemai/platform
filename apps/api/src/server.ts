@@ -1,9 +1,10 @@
 import { createApp } from "./app.js";
 import { createDatabasePool } from "./config/database.js";
 import { loadEnvironment } from "./config/environment.js";
+import { resolveEnvironment } from "./config/secrets.js";
 import { ConsoleSmsProvider } from "./integrations/sms/console-sms.client.js";
 
-const environment = loadEnvironment();
+const environment = await resolveEnvironment(loadEnvironment());
 const pool = createDatabasePool(environment);
 const smsProvider = new ConsoleSmsProvider();
 const app = createApp({ environment, pool, smsProvider });
