@@ -12,11 +12,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <nav aria-label="Main navigation">
           <div className="nav-section">Client portal</div>
 
-          {auth.user?.isPlatformAdmin && (
-            <>
           <NavLink to="/">Calls</NavLink>
-           </>
-	        )}
           <NavLink to="/analytics">Analytics</NavLink>
 
           {(auth.user?.isPlatformAdmin ||
