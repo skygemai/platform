@@ -140,7 +140,7 @@ export function AgentsPage() {
                   <td><span className={`status-pill ${agent.active ? "active" : "inactive"}`}>{agent.active ? "Active" : "Inactive"}</span></td>
                   <td><div className="table-actions">
                     <button className="text-button" onClick={() => openEdit(agent)}>Edit</button>
-                    <button className="text-button" onClick={() => void rotate(agent)} disabled={rotatingId === agent.id}>{rotatingId === agent.id ? "Rotating…" : "Rotate key"}</button>
+                   {/* <button className="text-button" onClick={() => void rotate(agent)} disabled={rotatingId === agent.id}>{rotatingId === agent.id ? "Rotating…" : "Rotate key"}</button> */}
                   </div></td>
                 </tr>
               ))}</tbody>

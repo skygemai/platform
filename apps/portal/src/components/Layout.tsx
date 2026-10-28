@@ -16,23 +16,15 @@ export function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/analytics">Analytics</NavLink>
 
           {(auth.user?.isPlatformAdmin ||
-            auth.tenants.some((tenant) => tenant.role === "owner")) && (
+            auth.tenants.some((tenant) => (tenant.role === "owner" || tenant.role ==="admin" )) && (
             <>
               <div className="nav-section">Administration</div>
-
-              {auth.user?.isPlatformAdmin && (
                 <NavLink to="/users">Users</NavLink>
-              )}
-
-              <NavLink to="/tenants">Tenants</NavLink>
-
-              {auth.user?.isPlatformAdmin && (
-                <>
-                  <NavLink to="/memberships">Memberships</NavLink>
-                  <NavLink to="/agents">Agents</NavLink>
-                </>
-              )}
+                <NavLink to="/tenants">Tenants</NavLink>
+                <NavLink to="/memberships">Memberships</NavLink>
+                <NavLink to="/agents">Agents</NavLink>
             </>
+            )
           )}
 	      </nav>
         <div className="environment"><span /> Secure portal</div>

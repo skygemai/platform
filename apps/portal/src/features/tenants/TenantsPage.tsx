@@ -23,6 +23,9 @@ export function TenantsPage() {
   const { user } = useAuth();
   const isPlatformAdmin = user?.isPlatformAdmin === true;
 
+  const auth = useAuth();
+  const isSkyGemRole = auth.tenants.some((tenant) => (tenant.role === "owner" || tenant.role ==="admin" ));
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
@@ -154,7 +157,7 @@ export function TenantsPage() {
                     <td>{new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(new Date(tenant.createdAt))}</td>
                     <td><div className="table-actions">
                       <button className="text-button" onClick={() => openEdit(tenant)}>Edit</button>
-                      {isPlatformAdmin && (
+                      {isPlatformAdmin || isSkyGemRole && (
                         <button
                           className="text-button danger"
                           onClick={() => void disable(tenant)}
