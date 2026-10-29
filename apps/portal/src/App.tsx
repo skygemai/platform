@@ -19,14 +19,38 @@ function PortalRoutes() {
       <Routes>
         <Route path="/" element={<CallsPage key={tenantKey} />} />
         <Route path="/analytics" element={<AnalyticsPage key={tenantKey} />} />
-        <Route path="/users" element={<RequirePlatformAdmin><UsersPage /></RequirePlatformAdmin>} />
-        <Route path="/tenants" element={
+        <Route 
+          path="/users" 
+          element={
+            <RequireTenantManager>
+              <UsersPage />
+            </RequireTenantManager>
+          }
+        /> 
+        <Route 
+          path="/tenants" 
+          element={
             <RequireTenantManager>
               <TenantsPage />
             </RequireTenantManager>
-          } /> 
-        <Route path="/memberships" element={<RequirePlatformAdmin><MembershipsPage /></RequirePlatformAdmin>} />
-        <Route path="/agents" element={<RequirePlatformAdmin><AgentsPage /></RequirePlatformAdmin>} />
+          }
+        /> 
+        <Route 
+          path="/memberships" 
+          element={
+            <RequireTenantManager>
+              <MembershipsPage />
+            </RequireTenantManager>
+          }
+        /> 
+        <Route 
+          path="/agents" 
+          element={
+            <RequireTenantManager>
+              <AgentsPage />
+            </RequireTenantManager>
+          }
+        /> 
       </Routes>
     </Layout>
   );
@@ -45,7 +69,7 @@ function RequireTenantManager({ children }: { children: React.ReactNode }) {
 
   const allowed =
     user?.isPlatformAdmin ||
-    tenants.some((tenant) => tenant.role === "owner");
+    tenants.some((tenant) => (tenant.role === "owner" || tenant.role === "admin"));
 
   return allowed
     ? <>{children}</>

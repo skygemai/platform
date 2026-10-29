@@ -5,6 +5,14 @@ import { useAuth } from "../auth/AuthContext";
 export function Layout({ children }: { children: ReactNode }) {
   const auth = useAuth();
 
+  const canAdministerSelectedTenant =
+    auth.user?.isPlatformAdmin ||
+    auth.tenants.some(
+      (tenant) =>
+        tenant.id === auth.selectedTenantId &&
+        (tenant.role === "owner" || tenant.role === "admin")
+  );
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -15,11 +23,8 @@ export function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/">Calls</NavLink>
           <NavLink to="/analytics">Analytics</NavLink>
 
-          {(auth.user?.isPlatformAdmin ||
-            auth.tenants.some(
-              (tenant) => tenant.role === "owner" || tenant.role === "admin"
-            )) && (
-            <>
+          {canAdministerSelectedTenant && (
+              <>
               <div className="nav-section">Administration</div>
               <NavLink to="/users">Users</NavLink>
               <NavLink to="/tenants">Tenants</NavLink>
